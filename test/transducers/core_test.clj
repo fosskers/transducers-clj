@@ -27,3 +27,11 @@
 
 (deftest find-test
   (is (= 6 (transduce t/pass (t/find even?) [1 3 5 6 9]))))
+
+(deftest scan-test
+  (is (= [0 1 3 6 10] (transduce (t/scan + 0) conj [1 2 3 4])))
+  (is (= [0 1] (transduce (comp (t/scan + 0) (take 2)) conj [1 2 3 4]))))
+
+(deftest window-test
+  (let [res (transduce (t/window 3) conj [1 2 3 4 5])]
+    (is (= [[1 2 3] [2 3 4] [3 4 5]] res))))

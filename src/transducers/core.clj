@@ -2,6 +2,48 @@
 
 ;; --- Transducers --- ;;
 
+(defn window
+  "Yield `n`-length windows of overlapping values. This is different from
+  `partition-all` which yields non-overlapping windows. If there were fewer
+  items in the input than `n`, then this yields nothing."
+  [n]
+  (fn [reducer]
+    (let [queue (atom [])]
+      (fn
+        ([result] (reducer result))
+        ([result input]
+         (swap! queue conj input)
+         (let [len (clojure.core/count @queue)]
+           (cond (< len n) result
+                 (= len n) (reducer result @queue)
+                 :else (do (swap! queue subvec 1)
+                           (reducer result @queue)))))))))
+
+(comment
+  (transduce (window 4) conj [1 2 3 4 5 6]))
+
+(defn scan
+  "Build up successive values from the results of previous applications of a
+  given function `f`. A `seed` is also given, and appears as the first element
+  passed through the transduction."
+  [f seed]
+  (fn [reducer]
+    (let [prev (atom seed)]
+      (fn
+        ([result]
+         (let [result (reducer result @prev)]
+           (if (reduced? result)
+             (reducer @result)
+             (reducer result))))
+        ([result input]
+         (let [old @prev
+               result (reducer result old)]
+           (if (reduced? result)
+             result
+             (let [new (f @prev input)]
+               (swap! prev (constantly new))
+               result))))))))
+
 (defn pass
   "Just pass along each value of the transduction without transforming."
   [reducer]
