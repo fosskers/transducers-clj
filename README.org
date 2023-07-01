@@ -27,11 +27,131 @@ README a handy introduction to Transducers themselves.
 See also [[https://github.com/cgrand/xforms][xforms]] for even more extension functions.
 
 * Table of Contents :toc_2_gh:
+- [[#usage][Usage]]
+  - [[#importing][Importing]]
+  - [[#transducers-reducers-and-sources][Transducers, Reducers, and Sources]]
+  - [[#reducers-and-fold][Reducers and =fold=]]
 - [[#example-gallery][Example Gallery]]
+  - [[#reducing-into-a-vector-or-set][Reducing into a Vector or Set]]
+  - [[#reducing-into-a-string][Reducing into a String]]
   - [[#processing-each-line-of-a-text-file][Processing each line of a text file]]
   - [[#reading-a-csv-file][Reading a CSV file]]
 
+* Usage
+
+** Importing
+
+Since this library reuses some symbol names found in ~clojure.core~, it is
+expected that you import =transducers= as follows:
+
+#+begin_src clojure
+(ns foo
+  (:require [transducers.core :as t]))
+#+end_src
+
+** Transducers, Reducers, and Sources
+
+#+begin_src clojure
+(transduce <transducer-chain> <reducer> <source>)
+#+end_src
+
+Data processing largely has three concerns:
+
+1. Where is my data coming from? (sources)
+2. What do I want to do to each element? (transducers)
+3. How do I want to collect the results? (reducers)
+
+Each full "transduction" requires all three. We pass one of each to the
+=transduce= function, which drives the process. It knows how to pull values from
+the source, feed them through the transducer chain, and wrap everything together
+via the reducer.
+
+- Typical transducers are =map=, =filter=, and =take=.
+- Typical reducers are =+=, =count=, =conj=, and =fold=.
+- Typical sources are vectors, strings, and lazy streams.
+
+Let's sum the squares of the first 1000 odd integers:
+
+#+begin_src clojure
+(transduce
+ (comp (filter odd?)   ;; (2) Keep only odd numbers.
+       (take 1000)     ;; (3) Keep the first 1000 filtered odds.
+       (map #(* % %))) ;; (4) Square those 1000.
+ +        ;; (5) Reducer: Add up all the squares.
+ (range)) ;; (1) Source: Generate all positive integers.
+;; => 1333333000 (31 bits, #x4F790C08)
+#+end_src
+
+Two things of note here:
+
+1. =comp= is used here to chain together different transducer steps. Notice that
+   the order appears "backwards" from usual function composition. It may help to
+   image that =comp= is acting like the =->>= macro here.
+2. The reduction via =+= is listed as Step 5, but really it's occuring throughout
+   the transduction process. Each value that makes it through the composed
+   transducer chain is immediately added to an internal accumulator.
+
+Many, if not all, of the collection operations you're used to are available for
+use as /transducer/ and /reducer/ functions. There may even be some handy ones that
+are new to you! It's also easy to write your own.
+
+** Reducers and =fold=
+
+A /reducer/ is a function that "reduces" or "folds" the results of the transducer
+chain into some single value. This could be a collection or some scalar. Some
+reducers can even short-circuit, yielding some desired value early.
+
+=fold= is the ultimate reducer, and thus deserves special attention. =fold= creates
+an ad-hoc reducer based on a given 2-argument function. A =seed= is also required
+as the initial accumulator value, which also becomes the return value in the
+case where there were no input left in the transduction.
+
+The normal Clojure functions =+= and =*= are automatically valid reducers, because
+they yield sane values even when given 0 or 1 arguments. Other functions like
+=max= cannot be used as-is as reducers since they require at least 2 arguments.
+For functions like this, =fold= is appropriate.
+
+#+begin_src clojure
+;; The length of the longest word in this README.
+(with-open [reader (io/reader "README.org")]
+  (transduce (comp (mapcat #(str/split % #" "))
+                   (filter #(every? (fn [c] (Character/isLetter c)) %))
+                   (map count))
+             (t/fold max 0) (line-seq reader)))
+;; => 14
+#+end_src
+
 * Example Gallery
+
+** Reducing into a Vector or Set
+
+~conj~ does what you need, as-is.
+
+#+begin_src clojure
+(transduce (map inc) conj [2 2 2])
+;; => [3 3 3]
+#+end_src
+
+Since ~conj~ is polymorphic, you can pass a different initial value to use as the
+accumulator. If ~#{}~, then the results will naturally collect as a set.
+
+#+begin_src clojure
+(transduce (map inc) conj #{} [2 2 2])
+;; => #{3}
+#+end_src
+
+** Reducing into a String
+
+The standard library ~str~ function, like ~+~, is a valid reducer as-is. Let's
+remove all whitespace and form a weird message....
+
+#+begin_src clojure
+(transduce (comp (remove #(= \space %))
+                 (t/window 3)
+                 cat)
+           str "How are you doing?")
+;; => "Howowawararereyeyoyouoududodoioiningng?"
+#+end_src
 
 ** Processing each line of a text file
 
