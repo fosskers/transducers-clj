@@ -135,3 +135,13 @@
     ([_ input] (if (pred input)
                  (reduced input)
                  nil))))
+
+(defn for-each
+  "Run through every item in a transduction for their side effects but throw
+  away all results. Yields `nil`."
+  ([] nil)
+  ([_] nil)
+  ([_ _] nil))
+
+(comment
+  (transduce (map println) for-each [1 2 3]))
