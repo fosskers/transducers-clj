@@ -68,3 +68,28 @@
     ([] fallback)
     ([acc] acc)
     ([_ input] input)))
+
+(defn fold
+  "The fundamental reducer. `fold` creates an ad-hoc reducer based on a given
+  2-argument function `f`. A `seed` is also required as the initial accumulator
+  value, which also becomes the return value in case there were no input left in
+  the transduction.
+
+  Functions like `max` cannot be used as-is as reducers since they require at
+  least 1 argument. For functions like this, `fold` is appropriate."
+  [f seed]
+  (fn
+    ([] seed)
+    ([acc] acc)
+    ([acc input] (f acc input))))
+
+(defn find
+  "Find the first element in the transduction that satisfies a given `pred`.
+  Yields `nil` if no such element were found."
+  [pred]
+  (fn
+    ([] nil)
+    ([acc] acc)
+    ([_ input] (if (pred input)
+                 (reduced input)
+                 nil))))
