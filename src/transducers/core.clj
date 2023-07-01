@@ -41,3 +41,30 @@
     ([_ input] (if (pred input)
                  (reduced true)
                  false))))
+
+(defn all
+  "Yield `true` if all elements of the transduction satisfy `pred`. Short-circuit
+  with `false` if any element fails the test."
+  [pred]
+  (fn
+    ([] true)
+    ([acc] acc)
+    ([acc input] (if (and acc (pred input))
+                   true
+                   (reduced false)))))
+
+(defn first
+  "Yield the first value of the transduction, or the `fallback` if there were none."
+  [fallback]
+  (fn
+    ([] fallback)
+    ([acc] acc)
+    ([_ input] (reduced input))))
+
+(defn last
+  "Yield the final value of the transduction, or the `fallback` if there were none."
+  [fallback]
+  (fn
+    ([] fallback)
+    ([acc] acc)
+    ([_ input] input)))
