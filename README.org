@@ -1,0 +1,75 @@
+#+title: Transducers: Ergonomic, efficient data processing
+
+#+begin_quote
+I think Transducers are a fundamental primitive that decouples critical logic
+from list/sequence processing, and if I had to do Clojure all over I would put
+them at the bottom.
+
+-- Rich Hickey
+#+end_quote
+
+Transducers are an ergonomic and extremely memory-efficient way to process a
+data source. Here "data source" means simple collections like Lists or Vectors,
+but also potentially large files or generators of infinite data.
+
+Transducers...
+
+- allow the chaining of operations like =map= and =filter= without allocating memory between each step.
+- aren't tied to any specific data type; they need only be implemented once.
+- vastly simplify "data transformation code".
+- have nothing to do with "lazy evaluation".
+- are a joy to use!
+
+This library extends [[https://clojure.org/reference/transducers][Clojure's default implementation]] by adding common
+/transducer/ and /reducer/ patterns found in other languages. Also consider this
+README a handy introduction to Transducers themselves.
+
+See also [[https://github.com/cgrand/xforms][xforms]] for even more extension functions.
+
+* Table of Contents :toc_2_gh:
+- [[#example-gallery][Example Gallery]]
+  - [[#processing-each-line-of-a-text-file][Processing each line of a text file]]
+  - [[#reading-a-csv-file][Reading a CSV file]]
+
+* Example Gallery
+
+** Processing each line of a text file
+
+Clojure's implementation of ~transduce~ understands lazy streams, so line reading
+is already possible with just vanilla Clojure. Regardless, here's an example:
+
+#+begin_src clojure
+(ns foo
+  (:require [transducers.core :as t]
+            [clojure.java.io :as io]))
+
+(with-open [reader (io/reader "foo.txt")]
+  (transduce t/pass t/count (line-seq reader)))
+#+end_src
+
+This will yield the number of lines in the file.
+
+** Reading a CSV file
+
+It's easy to read a large CSV file as a stream of Clojure maps with the ~csv~
+transducer:
+
+#+begin_src clojure
+(ns foo
+  (:require [transducers.core :as t]
+            [clojure.java.io :as io]
+            [clojure.data.csv :as csv]))
+
+(with-open [reader (io/reader "foo.csv")]
+  (transduce (comp t/csv
+                   (map #(select-keys % ["Name" "Age"])))
+             conj (csv/read-csv reader)))
+#+end_src
+
+Note that ~csv~ doesn't make any assumptions about parsing the string data. The
+map keys are strings, and number/boolean/etc. values are left unparsed. If you
+do want parsed values, add another ~map~ step that looks something like:
+
+#+begin_src clojure
+(map #(update % "Foo" read-string))
+#+end_src
