@@ -1,4 +1,6 @@
-(ns transducers.core)
+(ns transducers.core
+  (:require [clojure.data.csv :as csv]
+            [clojure.java.io :as io]))
 
 ;; --- Transducers --- ;;
 
@@ -50,6 +52,26 @@
   (fn
     ([result] (reducer result))
     ([result input] (reducer result input))))
+
+(defn csv
+  "Interprets the data stream as CSV data. The first item found is assumed to be
+  the header list, and it will be used to construct useable maps for all
+  subsequent items."
+  [reducer]
+  (let [headers (atom nil)]
+    (fn
+      ([result] (reducer result))
+      ([result input]
+       (if @headers
+         (reducer result (zipmap @headers input))
+         (do (swap! headers (constantly input))
+             result))))))
+
+(comment
+  (with-open [reader (clojure.java.io/reader "foo.csv")]
+    (transduce (comp csv
+                     (map #(select-keys % ["Name" "Age"])))
+               conj (clojure.data.csv/read-csv reader))))
 
 ;; --- Reducers --- ;;
 
