@@ -1,5 +1,14 @@
 (ns transducers.core)
 
+;; --- Transducers --- ;;
+
+(defn pass
+  "Just pass along each value of the transduction without transforming."
+  [reducer]
+  (fn
+    ([result] (reducer result))
+    ([result input] (reducer result input))))
+
 ;; --- Reducers --- ;;
 
 (defn count
@@ -22,3 +31,13 @@
       ([acc input] (swap! items inc)
                    (+ acc input)))))
 
+(defn any
+  "Yield `true` if any element in the transduction satisfies `pred`.
+  Short-circuits the transduction as soon as the condition is met."
+  [pred]
+  (fn
+    ([] false)
+    ([acc] acc)
+    ([_ input] (if (pred input)
+                 (reduced true)
+                 false))))
