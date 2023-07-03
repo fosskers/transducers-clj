@@ -75,7 +75,7 @@ Two things of note here:
 
 1. =comp= is used here to chain together different transducer steps. Notice that
    the order appears "backwards" from usual function composition. It may help to
-   image that =comp= is acting like the =->>= macro here.
+   imagine that =comp= is acting like the =->>= macro here.
 2. The reduction via =+= is listed as Step 5, but really it's occuring throughout
    the transduction process. Each value that makes it through the composed
    transducer chain is immediately added to an internal accumulator.
@@ -88,12 +88,12 @@ are new to you! It's also easy to write your own.
 
 A /reducer/ is a function that "reduces" or "folds" the results of the transducer
 chain into some single value. This could be a collection or some scalar. Some
-reducers can even short-circuit, yielding some desired value early.
+reducers can even short-circuit, yielding a desired value early.
 
 =fold= is the ultimate reducer, and thus deserves special attention. =fold= creates
-an ad-hoc reducer based on a given 2-argument function. A =seed= is also required
-as the initial accumulator value, which also becomes the return value in the
-case where there were no input left in the transduction.
+an ad-hoc reducer based on a given 2-argument function. A =seed= is required as
+the initial accumulator value, which also becomes the return value in the case
+where there were no input left in the transduction.
 
 The normal Clojure functions =+= and =*= are automatically valid reducers, because
 they yield sane values even when given 0 or 1 arguments. Other functions like
@@ -112,7 +112,7 @@ For functions like this, =fold= is appropriate.
 
 * Example Gallery
 
-** Reducing into a Vector or Set
+** Reducing into a Vector, Set, or Map
 
 ~conj~ does what you need, as-is.
 
@@ -127,6 +127,16 @@ accumulator. If ~#{}~, then the results will naturally collect as a set.
 #+begin_src clojure
 (transduce (map inc) conj #{} [2 2 2])
 ;; => #{3}
+#+end_src
+
+What about maps though, since their items are key-value pairs? Well, the
+key-value pairs appear as a 2-item vector to transducer functions. If we yield a
+similar vector and then reduce into a ~{}~, we get what we want.
+
+#+begin_src clojure
+(transduce (map (fn [[k v]] [k (inc v)]))
+           conj {} {"Apples" 5 "Bananas" 8})
+;; => {"Apples" 6, "Bananas" 9}
 #+end_src
 
 ** Reducing into a String
@@ -182,3 +192,14 @@ do want parsed values, add another ~map~ step that looks something like:
 #+begin_src clojure
 (map #(update % "Foo" read-string))
 #+end_src
+
+** Just running Side-effects
+
+So you want to run through some large data set, but don't actually care about
+collecting anything at the end. In that case, use ~for-each~:
+
+#+begin_src clojure
+(transduce (map println) t/for-each [1 2 3])
+#+end_src
+
+This will print each value of the input and yield ~nil~ at the end.
