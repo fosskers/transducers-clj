@@ -22,8 +22,8 @@
 (deftest last-test
   (is (= 10 (transduce t/pass (t/last 0) [2 4 6 7 10]))))
 
-(deftest fold-test
-  (is (= 1000 (transduce t/pass (t/fold max 0) [1 2 3 4 1000 5 6]))))
+(deftest completing-test
+  (is (= 1000 (transduce t/pass (completing max) 0 [1 2 3 4 1000 5 6]))))
 
 (deftest find-test
   (is (= 6 (transduce t/pass (t/find even?) [1 3 5 6 9]))))

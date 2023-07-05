@@ -56,7 +56,7 @@ the source, feed them through the transducer chain, and wrap everything together
 via the reducer.
 
 - Typical transducers are =map=, =filter=, and =take=.
-- Typical reducers are =+=, =count=, =conj=, and =fold=.
+- Typical reducers are =+=, =count=, =conj=, and =completing=.
 - Typical sources are vectors, strings, and lazy streams.
 
 Let's sum the squares of the first 1000 odd integers:
@@ -84,21 +84,22 @@ Many, if not all, of the collection operations you're used to are available for
 use as /transducer/ and /reducer/ functions. There may even be some handy ones that
 are new to you! It's also easy to write your own.
 
-** Reducers and =fold=
+** Reducers and =completing=
 
 A /reducer/ is a function that "reduces" or "folds" the results of the transducer
 chain into some single value. This could be a collection or some scalar. Some
 reducers can even short-circuit, yielding a desired value early.
 
-=fold= is the ultimate reducer, and thus deserves special attention. =fold= creates
-an ad-hoc reducer based on a given 2-argument function. A =seed= is required as
-the initial accumulator value, which also becomes the return value in the case
-where there were no input left in the transduction.
+=completing= is the ultimate reducer, and thus deserves special attention.
+=completing= creates an ad-hoc reducer based on a given 2-argument function. By
+passing an initial =seed= value to =transduce=, you can set the initial accumulator
+value, which also becomes the return value in the case where there were no input
+left in the transduction.
 
 The normal Clojure functions =+= and =*= are automatically valid reducers, because
 they yield sane values even when given 0 or 1 arguments. Other functions like
 =max= cannot be used as-is as reducers since they require at least 2 arguments.
-For functions like this, =fold= is appropriate.
+For functions like this, =completing= is appropriate.
 
 #+begin_src clojure
 ;; The length of the longest word in this README.
@@ -106,7 +107,7 @@ For functions like this, =fold= is appropriate.
   (transduce (comp (mapcat #(str/split % #" "))
                    (filter #(every? (fn [c] (Character/isLetter c)) %))
                    (map count))
-             (t/fold max 0) (line-seq reader)))
+             (completing max) 0 (line-seq reader)))
 ;; => 14
 #+end_src
 
