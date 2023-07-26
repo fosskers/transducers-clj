@@ -1,0 +1,12 @@
+image: archlinux
+packages:
+- clojure
+sources:
+- https://git.sr.ht/~fosskers/transducers-clj
+tasks:
+- prepare: |
+    cd transducers-clj
+    clojure -P
+- test: |
+    cd transducers-clj
+    clojure -X:test
