@@ -1,2 +1,5 @@
 {:path ["src"]
- :deps {org.clojure/data.csv {:mvn/version "1.0.1"}}}
+ :deps {org.clojure/data.csv {:mvn/version "1.0.1"}}
+ :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.85.1342"}}
+                  :exec-fn kaocha.runner/exec-fn
+                  :exec-args {}}}}
