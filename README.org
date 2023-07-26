@@ -24,7 +24,10 @@ This library extends [[https://clojure.org/reference/transducers][Clojure's defa
 /transducer/ and /reducer/ patterns found in other languages. You can also consider
 this README a handy introduction to Transducers themselves.
 
-See also [[https://github.com/cgrand/xforms][xforms]] for even more extension functions.
+See also [[https://github.com/cgrand/xforms][xforms]] for even more extension functions in Clojure.
+
+Looking for Transducers in other Lisps? Check out the [[https://git.sr.ht/~fosskers/cl-transducers][Common Lisp]] and [[https://git.sr.ht/~fosskers/transducers.fnl][Fennel]]
+implementations!
 
 * Usage
 
