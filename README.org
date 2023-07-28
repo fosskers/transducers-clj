@@ -17,7 +17,7 @@ Transducers...
 - allow the chaining of operations like =map= and =filter= without allocating memory between each step.
 - aren't tied to any specific data type; they need only be implemented once.
 - vastly simplify "data transformation code".
-- have nothing to do with "lazy evaluation".
+- have nothing to do with [[https://clojure-goes-fast.com/blog/clojures-deadly-sin/]["lazy evaluation"]].
 - are a joy to use!
 
 This library extends [[https://clojure.org/reference/transducers][Clojure's default implementation]] by adding common
