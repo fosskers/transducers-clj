@@ -4,6 +4,7 @@ secrets:
 packages:
 - clojure
 - emacs-nox
+- tree-sitter
 - jq
 sources:
 - https://git.sr.ht/~fosskers/transducers-clj
