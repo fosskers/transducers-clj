@@ -206,4 +206,4 @@ collecting anything at the end. In that case, use ~for-each~:
 (transduce (map println) t/for-each [1 2 3])
 #+end_src
 
-This will print each value of the input and yield ~nil~ at the end.
+This will print each value of the input and yield ~true~ at the end.
